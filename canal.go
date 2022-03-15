@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"regexp"
 	"strconv"
@@ -19,7 +20,6 @@ import (
 	"github.com/go-mysql-org/go-mysql/schema"
 	"github.com/pingcap/errors"
 	"github.com/pingcap/parser"
-	"github.com/siddontang/go-log/log"
 )
 
 // Canal can sync your MySQL data into everywhere, like Elasticsearch, Redis, etc...
@@ -222,14 +222,14 @@ func (c *Canal) run() error {
 		close(c.dumpDoneCh)
 
 		if err != nil {
-			log.Errorf("canal dump mysql err: %v", err)
+			log.Printf("canal dump mysql err: %v", err)
 			return errors.Trace(err)
 		}
 	}
 
 	if err := c.runSyncBinlog(); err != nil {
 		if errors.Cause(err) != context.Canceled {
-			log.Errorf("canal start sync binlog err: %v", err)
+			log.Printf("canal start sync binlog err: %v", err)
 			return errors.Trace(err)
 		}
 	}
@@ -238,7 +238,7 @@ func (c *Canal) run() error {
 }
 
 func (c *Canal) Close() {
-	log.Infof("closing canal")
+	log.Printf("closing canal")
 	c.m.Lock()
 	defer c.m.Unlock()
 
@@ -353,7 +353,7 @@ func (c *Canal) GetTable(db string, table string) (*schema.Table, error) {
 			c.errorTablesGetTime[key] = time.Now()
 			c.tableLock.Unlock()
 			// log error and return ErrMissingTableMeta
-			log.Errorf("canal get table meta err: %v", errors.Trace(err))
+			log.Printf("canal get table meta err: %v", errors.Trace(err))
 			return nil, schema.ErrMissingTableMeta
 		}
 		return nil, err
